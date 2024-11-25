@@ -32,6 +32,9 @@ import pandas as pd
 import torch
 import webdataset as wds
 
+# BOP toolkit library
+from bop_toolkit_lib import inout
+
 # MegaPose
 import megapose.utils.tensor_collection as tc
 from megapose.lib3d.transform import Transform
@@ -168,6 +171,23 @@ class CameraData:
         if "resolution" in d:
             assert isinstance(d["resolution"], list)
             h, w = d["resolution"]
+            assert isinstance(h, int)
+            assert isinstance(w, int)
+            data.resolution = (h, w)
+        return data
+
+    @staticmethod
+    def from_bop(data_str: str) -> "CameraData":
+        d: DataJsonType = inout.load_cam_params(data_str)
+        assert isinstance(d, dict)
+        data = CameraData()
+        for k in ("K",):
+            if k in d:
+                setattr(data, k, np.array(d[k]))
+        if "im_size" in d:
+            assert isinstance(d["im_size"], tuple)
+            assert len(d["im_size"]) == 2
+            w, h = d["im_size"]
             assert isinstance(h, int)
             assert isinstance(w, int)
             data.resolution = (h, w)
