@@ -14,13 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
-
 # Standard Library
 import copy
 import os
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 # Third Party
 from omegaconf import OmegaConf
@@ -28,17 +26,9 @@ from omegaconf import OmegaConf
 # MegaPose
 import megapose.evaluation.bop
 import megapose.evaluation.evaluation
-from megapose.bop_config import (
-    PBR_COARSE,
-    PBR_DETECTORS,
-    PBR_REFINER,
-    SYNT_REAL_COARSE,
-    SYNT_REAL_DETECTORS,
-    SYNT_REAL_REFINER,
-)
+from megapose.bop_config import PBR_DETECTORS
 from megapose.config import (
     DEBUG_RESULTS_DIR,
-    EXP_DIR,
     MODELNET_TEST_CATEGORIES,
     RESULTS_DIR,
 )
@@ -67,12 +57,12 @@ BOP_DATASET_NAMES = [
 ]
 
 BOP_TEST_DATASETS = [
-    "lmo.bop19",
-    "tless.bop19",
-    "tudl.bop19",
-    "icbin.bop19",
-    "itodd.bop19",
-    "hb.bop19",
+    # "lmo.bop19",
+    # "tless.bop19",
+    # "tudl.bop19",
+    # "icbin.bop19",
+    # "itodd.bop19",
+    # "hb.bop19",
     "ycbv.bop19",
 ]
 
@@ -116,10 +106,8 @@ def run_full_eval(cfg: FullEvalConfig) -> None:
     init_distributed_mode()
     print("World size", get_world_size())
 
-    assert (
-        cfg.detection_coarse_types is not None and len(cfg.detection_coarse_types) > 0
-    ), "You must specify some detector_coarse_types to evaluate."
-
+    assert cfg.detection_type is not None
+    assert cfg.coarse_estimation_type is not None
     assert cfg.ds_names is not None
 
     # Iterate over each dataset
@@ -127,13 +115,12 @@ def run_full_eval(cfg: FullEvalConfig) -> None:
 
         # create the EvalConfig objects that we will call `run_eval` on
         eval_configs: Dict[str, EvalConfig] = dict()
-        for (detection_type, coarse_estimation_type) in cfg.detection_coarse_types:
-            name, cfg_ = create_eval_cfg(cfg, detection_type, coarse_estimation_type, ds_name)
-            eval_configs[name] = cfg_
+        name, cfg_ = create_eval_cfg(cfg, cfg.detection_type, cfg.coarse_estimation_type, ds_name)
+        eval_configs[name] = cfg_
 
         # For each eval_cfg run the evaluation.
         # Note that the results get saved to disk
-        for save_key, eval_cfg in eval_configs.items():
+        for _, eval_cfg in eval_configs.items():
 
             # Run the inference
             if not cfg.skip_inference:
@@ -211,9 +198,13 @@ if __name__ == "__main__":
     )
 
     cfg = OmegaConf.merge(cfg, cli_cfg)
+    cfg.result_id = "icbin"
+    cfg.detection_type = "gt"
+    cfg.coarse_estimation_type = "SO3_grid"
+    cfg.ds_names = BOP_TEST_DATASETS
 
-    assert cfg.coarse_run_id is not None
-    assert cfg.refiner_run_id is not None
+    logger.info(f"{cfg.n_rendering_workers}")
+
     assert cfg.result_id is not None
 
     if cfg.ds_names == "BOP_TEST_DATASETS":

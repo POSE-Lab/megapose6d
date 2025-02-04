@@ -32,9 +32,6 @@ import pandas as pd
 import torch
 import webdataset as wds
 
-# BOP toolkit library
-from bop_toolkit_lib import inout
-
 # MegaPose
 import megapose.utils.tensor_collection as tc
 from megapose.lib3d.transform import Transform
@@ -122,25 +119,6 @@ class ObjectData:
                 setattr(data, k, np.array(d[k]))
         return data
 
-    @staticmethod
-    def from_bop(bbox: DataJsonType, gt: DataJsonType, id_label_map: dict[int, str]) -> List[ObjectData]:
-        object_data = []
-        for bbox_data, gt_data in zip(bbox, gt):
-            obj_id = gt_data["obj_id"]
-            obj_data = ObjectData(label=id_label_map[obj_id])
-            bbox_obj = bbox_data["bbox_obj"]
-            bbox_visib = bbox_data["bbox_visib"]
-            bbox_obj[2] += bbox_obj[0]
-            bbox_obj[3] += bbox_obj[1]
-            bbox_visib[2] += bbox_visib[0]
-            bbox_visib[3] += bbox_visib[1]
-            setattr(obj_data, "bbox_amodal", np.array(bbox_obj))
-            setattr(obj_data, "bbox_modal", np.array(bbox_visib))
-            setattr(obj_data, "visib_fract", bbox_data["visib_fract"])
-            setattr(obj_data, "unique_id", obj_id)
-            object_data.append(obj_data)
-        return object_data
-
 
 @dataclass
 class CameraData:
@@ -190,23 +168,6 @@ class CameraData:
         if "resolution" in d:
             assert isinstance(d["resolution"], list)
             h, w = d["resolution"]
-            assert isinstance(h, int)
-            assert isinstance(w, int)
-            data.resolution = (h, w)
-        return data
-
-    @staticmethod
-    def from_bop(data_str: str) -> "CameraData":
-        d: DataJsonType = inout.load_cam_params(data_str)
-        assert isinstance(d, dict)
-        data = CameraData()
-        for k in ("K",):
-            if k in d:
-                setattr(data, k, np.array(d[k]))
-        if "im_size" in d:
-            assert isinstance(d["im_size"], tuple)
-            assert len(d["im_size"]) == 2
-            w, h = d["im_size"]
             assert isinstance(h, int)
             assert isinstance(w, int)
             data.resolution = (h, w)

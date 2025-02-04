@@ -54,6 +54,7 @@ GSO_POINTCLOUD_DIR = GSO_DIR / "models_pointcloud"
 GSO_SCALE = 0.1
 
 EXP_DIR = LOCAL_DATA_DIR / "experiments"
+MODELS_DIR = LOCAL_DATA_DIR / "megapose-models"
 RESULTS_DIR = LOCAL_DATA_DIR / "results"
 DEBUG_RESULTS_DIR = LOCAL_DATA_DIR / "debug/results"
 DEBUG_DATA_DIR = LOCAL_DATA_DIR / "debug_data"

@@ -29,7 +29,7 @@ from omegaconf import OmegaConf
 # MegaPose
 import megapose
 import megapose.utils.tensor_collection as tc
-from megapose.config import EXP_DIR
+from megapose.config import EXP_DIR, MODELS_DIR
 from megapose.datasets.datasets_cfg import make_object_dataset
 from megapose.datasets.object_dataset import RigidObjectDataset
 from megapose.datasets.scene_dataset import CameraData, ObjectData
@@ -83,7 +83,7 @@ def load_pose_models(
     object_dataset: RigidObjectDataset,
     force_panda3d_renderer: bool = False,
     renderer_kwargs: Optional[dict] = None,
-    models_root: Path = EXP_DIR,
+    models_root: Path = MODELS_DIR,
 ) -> Tuple[torch.nn.Module, torch.nn.Module, megapose.lib3d.rigid_mesh_database.BatchedMeshes]:
 
     coarse_run_dir = models_root / coarse_run_id

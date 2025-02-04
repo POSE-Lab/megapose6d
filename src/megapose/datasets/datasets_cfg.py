@@ -390,13 +390,15 @@ def get_obj_ds_info(ds_name: str) -> Tuple[Optional[str], str]:
         urdf_ds_name = "lm"
         obj_ds_name = "lm.panda3d"
     elif ds_name == "tless.bop19":
-        obj_ds_name = "tless.panda3d"
+        obj_ds_name = "tless.cad.panda3d"
     elif ds_name == "hope.bop19":
         obj_ds_name = "hope.panda3d"
     elif ds_name == "hb.bop19":
         obj_ds_name = "hb.panda3d"
     elif ds_name == "tudl.bop19":
         obj_ds_name = "tudl.panda3d"
+    elif ds_name == "icbin.bop19":
+        obj_ds_name = "icbin.panda3d"
     elif ds_name == "custom":
         obj_ds_name = "custom.panda3d"
     elif "modelnet." in ds_name:

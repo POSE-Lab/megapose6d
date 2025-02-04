@@ -188,15 +188,18 @@ class PredictionRunner:
                     self.run_inference_pipeline(
                         pose_estimator, obs_tensor, gt_detections, initial_estimates=initial_data
                     )
-
-            cuda_timer = CudaTimer()
-            cuda_timer.start()
-            with torch.no_grad():
-                all_preds = self.run_inference_pipeline(
-                    pose_estimator, obs_tensor, gt_detections, initial_estimates=initial_data
-                )
-            cuda_timer.end()
-            duration = cuda_timer.elapsed()
+            try:
+                cuda_timer = CudaTimer()
+                cuda_timer.start()
+                with torch.no_grad():
+                    all_preds = self.run_inference_pipeline(
+                        pose_estimator, obs_tensor, gt_detections, initial_estimates=initial_data
+                    )
+                cuda_timer.end()
+                duration = cuda_timer.elapsed()
+            except Exception as e:
+                logger.error(f"Error in inference: {e}")
+                continue
 
             for k, v in all_preds.items():
                 predictions_list[k].append(v)

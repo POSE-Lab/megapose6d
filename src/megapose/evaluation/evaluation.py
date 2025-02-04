@@ -26,7 +26,6 @@ from omegaconf import OmegaConf
 # MegaPose
 import megapose
 import megapose.datasets.datasets_cfg
-import megapose.evaluation.eval_runner
 import megapose.inference.utils
 from megapose.datasets.datasets_cfg import make_object_dataset
 from megapose.evaluation.eval_config import EvalConfig
@@ -34,10 +33,7 @@ from megapose.evaluation.evaluation_runner import EvaluationRunner
 from megapose.evaluation.meters.modelnet_meters import ModelNetErrorMeter
 from megapose.evaluation.prediction_runner import PredictionRunner
 from megapose.evaluation.runner_utils import format_results
-from megapose.inference.depth_refiner import DepthRefiner
-from megapose.inference.icp_refiner import ICPRefiner
-from megapose.inference.pose_estimator import PoseEstimator
-from megapose.inference.teaserpp_refiner import TeaserppRefiner
+from megapose.utils.load_model import load_named_model
 from megapose.lib3d.rigid_mesh_database import MeshDataBase
 from megapose.utils.distributed import get_rank, get_tmp_dir
 from megapose.utils.logging import get_logger
@@ -103,48 +99,10 @@ def run_eval(
     if cfg.n_frames is not None:
         scene_ds.frame_index = scene_ds.frame_index[: cfg.n_frames].reset_index(drop=True)
 
-    # Load detector model
-    if cfg.inference.detection_type == "detector":
-        assert cfg.detector_run_id is not None
-        detector_model = megapose.inference.utils.load_detector(cfg.detector_run_id)
-    elif cfg.inference.detection_type == "gt":
-        detector_model = None
-    else:
-        raise ValueError(f"Unknown detection_type={cfg.inference.detection_type}")
-
-    # Load the coarse and mrefiner models
-    # Needed to deal with the fact that str and Optional[str] are incompatible types.
-    # See https://stackoverflow.com/a/53287330
-    assert cfg.coarse_run_id is not None
-    assert cfg.refiner_run_id is not None
-    coarse_model, refiner_model, mesh_db = megapose.inference.utils.load_pose_models(
-        coarse_run_id=cfg.coarse_run_id,
-        refiner_run_id=cfg.refiner_run_id,
-        n_workers=cfg.n_rendering_workers,
-        obj_ds_name=obj_ds_name,
-        urdf_ds_name=urdf_ds_name,
-        force_panda3d_renderer=True,
-    )
-
-    renderer = refiner_model.renderer
-
-    if cfg.inference.run_depth_refiner:
-        if cfg.inference.depth_refiner == "icp":
-            depth_refiner: Optional[DepthRefiner] = ICPRefiner(mesh_db, renderer)
-        elif cfg.inference.depth_refiner == "teaserpp":
-            depth_refiner = TeaserppRefiner(mesh_db, renderer)
-        else:
-            depth_refiner = None
-    else:
-        depth_refiner = None
-
-    pose_estimator = PoseEstimator(
-        refiner_model=refiner_model,
-        coarse_model=coarse_model,
-        detector_model=detector_model,
-        depth_refiner=depth_refiner,
-        SO3_grid_size=cfg.inference.SO3_grid_size,
-    )
+    pose_estimator = load_named_model(
+        cfg.model_name,
+        make_object_dataset(obj_ds_name)
+    ).cuda()
 
     # Create the prediction runner and run inference
     assert cfg.batch_size == 1

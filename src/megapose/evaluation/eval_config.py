@@ -86,10 +86,12 @@ class EvalConfig:
 class FullEvalConfig(EvalConfig):
 
     # Full eval
-    detection_coarse_types: Optional[List] = None
+    detection_type: str = ''
+    coarse_estimation_type: str = ''
     ds_names: Optional[List[str]] = None
     run_bop_eval: bool = True
     modelnet_categories: Optional[List[str]] = None
+    model_name: str = "megapose-1.0-RGB"
 
 
 @dataclass

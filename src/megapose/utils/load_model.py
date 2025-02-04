@@ -3,7 +3,7 @@ from megapose.config import LOCAL_DATA_DIR
 from megapose.datasets.object_dataset import RigidObjectDataset
 from megapose.inference.icp_refiner import ICPRefiner
 from megapose.inference.pose_estimator import PoseEstimator
-from megapose.inference.utils import load_pose_models
+from megapose.inference.utils import load_pose_models, load_detector
 
 NAMED_MODELS = {
     "megapose-1.0-RGB": {
@@ -77,11 +77,14 @@ def load_named_model(
             mesh_db,
             refiner_model.renderer,
         )
+        
+    # detector_model = load_detector("bop_pbr")
+    detector_model = None
 
     pose_estimator = PoseEstimator(
         refiner_model=refiner_model,
         coarse_model=coarse_model,
-        detector_model=None,
+        detector_model=detector_model,
         depth_refiner=depth_refiner,
         bsz_objects=8,
         bsz_images=bsz_images,
