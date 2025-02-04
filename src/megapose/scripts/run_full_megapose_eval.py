@@ -53,16 +53,16 @@ BOP_DATASET_NAMES = [
     "itodd",
     "hb",
     "ycbv",
-    # 'hope',
+    'hope',
 ]
 
 BOP_TEST_DATASETS = [
-    # "lmo.bop19",
-    # "tless.bop19",
-    # "tudl.bop19",
-    # "icbin.bop19",
-    # "itodd.bop19",
-    # "hb.bop19",
+    "lmo.bop19",
+    "tless.bop19",
+    "tudl.bop19",
+    "icbin.bop19",
+    "itodd.bop19",
+    "hb.bop19",
     "ycbv.bop19",
 ]
 
@@ -185,7 +185,6 @@ def update_cfg_debug(cfg: EvalConfig) -> FullEvalConfig:
 
 
 if __name__ == "__main__":
-    print("Running eval")
     set_logging_level("debug")
 
     cli_cfg = OmegaConf.from_cli()
@@ -198,7 +197,7 @@ if __name__ == "__main__":
     )
 
     cfg = OmegaConf.merge(cfg, cli_cfg)
-    cfg.result_id = "icbin"
+    cfg.result_id = "bop"
     cfg.detection_type = "gt"
     cfg.coarse_estimation_type = "SO3_grid"
     cfg.ds_names = BOP_TEST_DATASETS
