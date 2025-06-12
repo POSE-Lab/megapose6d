@@ -268,7 +268,7 @@ class BOPDataset(SceneDataset):
             else:
                 for n in range(n_objects):
                     binary_mask_n = np.array(
-                        Image.open(scene_dir / "mask_visib" / f"{view_id_str}_{n:06d}.png")
+                        Image.open(scene_dir / "mask_visib" / f"{view_id_str}_{obj_id:06d}.png")
                     )
                     segmentation[binary_mask_n == 255] = n + 1
 
