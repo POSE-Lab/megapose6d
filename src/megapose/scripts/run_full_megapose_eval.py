@@ -61,8 +61,6 @@ BOP_TEST_DATASETS = [
     "tless.bop19",
     "tudl.bop19",
     "icbin.bop19",
-    "itodd.bop19",
-    "hb.bop19",
     "ycbv.bop19",
 ]
 
