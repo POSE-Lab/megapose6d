@@ -409,8 +409,6 @@ class SceneDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx: int) -> SceneObservation:
         assert self.frame_index is not None
         row = self.frame_index.iloc[idx]
-        print(f"frame_index = {self.frame_index}")
-        print(f"row = {row}")
         infos = ObservationInfos(scene_id=row.scene_id, view_id=row.view_id)
         return self._load_scene_observation(infos)
 
