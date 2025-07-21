@@ -113,6 +113,10 @@ def make_scene_dataset(
         ds_dir = BOP_DS_DIR / "lm"
         ds = BOPDataset(ds_dir, split="test", label_format="lm-{label}")
         ds = keep_bop19(ds)
+    elif ds_name == "isc":
+        ds_dir = BOP_DS_DIR / "isc"
+        ds = BOPDataset(ds_dir, split="test", label_format="isc-{label}")
+
 
     # Non-BOP challenge BOP dataset splits
     elif ds_name == "tless.primesense.train":
@@ -223,6 +227,9 @@ def make_object_dataset(ds_name: str) -> RigidObjectDataset:
         ds = BOPObjectDataset(BOP_DS_DIR / "ruapc/models", label_format="ruapc-{label}")
     elif ds_name == "hope":
         ds = BOPObjectDataset(BOP_DS_DIR / "hope/models", label_format="hope-{label}")
+    elif ds_name == "isc":
+        ds = BOPObjectDataset(BOP_DS_DIR / "isc/models", label_format="isc-{label}")
+
 
     # BOP models converted for Panda3D
     # TODO: Is this necessary ?
@@ -399,6 +406,8 @@ def get_obj_ds_info(ds_name: str) -> Tuple[Optional[str], str]:
         obj_ds_name = "tudl.panda3d"
     elif ds_name == "icbin.bop19":
         obj_ds_name = "icbin.panda3d"
+    elif ds_name == "isc":
+        obj_ds_name = "isc"
     elif ds_name == "custom":
         obj_ds_name = "custom.panda3d"
     elif "modelnet." in ds_name:

@@ -91,7 +91,7 @@ class FullEvalConfig(EvalConfig):
     ds_names: Optional[List[str]] = None
     run_bop_eval: bool = True
     modelnet_categories: Optional[List[str]] = None
-    model_name: str = "megapose-1.0-RGB"
+    model_name: str = "megapose-1.0-RGBD"
 
 
 @dataclass

@@ -54,14 +54,16 @@ BOP_DATASET_NAMES = [
     "hb",
     "ycbv",
     'hope',
+    "isc",
 ]
 
 BOP_TEST_DATASETS = [
-    "lmo.bop19",
-    "tless.bop19",
-    "tudl.bop19",
-    "icbin.bop19",
-    "ycbv.bop19",
+    # "lmo.bop19",
+    # "tless.bop19",
+    # "tudl.bop19",
+    # "icbin.bop19",
+    # "ycbv.bop19",
+    "isc",
 ]
 
 

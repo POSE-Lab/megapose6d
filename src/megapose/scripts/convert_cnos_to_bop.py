@@ -16,6 +16,16 @@ from megapose.utils.logging import get_logger
 JsonValue = Union[None, str, bool, int, float, List[Any], Dict[str, Any]]
 
 
+@dataclasses.dataclass
+class Detection:
+    category_id: str
+    image_id: str
+    index: int
+    bbox_obj: Any
+    segmentation: Any
+    score: float
+
+
 def rle_to_binary_mask(rle: Dict[str, Any]) -> np.ndarray:
     """Converts a COCOs run-length encoding (RLE) to a binary mask.
 
@@ -135,7 +145,8 @@ def load_json(path: str) -> Any:
 
 
 def get_best_detection_per_object(
-    pred_mask_list: List[Dict[str, Any]]
+    pred_mask_list: List[Dict[str, Any]],
+    threshold: float,
 ) -> Dict[str, Dict[str, Any]]:
     """Get the best detection for each object based on the highest score.
 
@@ -149,19 +160,22 @@ def get_best_detection_per_object(
     best_detections_per_object = dict()
 
     for pred in pred_mask_list:
-        category_id = pred["category_id"]
-        image_id = pred["image_id"]
-        key = f"{image_id:06d}_{category_id:06d}"
-        detection = best_detections_per_object.get(key, None)
-        if not detection or (detection["score"] < pred["score"]):
-            best_detections_per_object[key] = {
-                "category_id": category_id,
-                "image_id": image_id,
-                "bbox_obj": pred["bbox"],
-                "segmentation": pred["segmentation"],
-                "score": pred["score"],
-            }
-
+        if pred["score"] > threshold:
+            category_id = pred["category_id"]
+            image_id = pred["image_id"]
+            key = f"{image_id:06d}_{category_id:06d}"
+            detections = best_detections_per_object.get(key, list())
+            index = len(detections)
+            detection = Detection(
+                category_id,
+                image_id,
+                index,
+                pred["bbox"],
+                pred["segmentation"],
+                pred["score"]
+            )
+            detections.append(detection)
+            best_detections_per_object[key] = detections
     return best_detections_per_object
 
 
@@ -179,18 +193,20 @@ def collect_detections_per_image(
     """
     detections = defaultdict(list)
 
-    for detection in best_detections_per_object.values():
-        image_id = detection["image_id"]
-        key = str(image_id)
-        detections[key].append(
-            {
-                "category_id": detection["category_id"],
-                "image_id": image_id,
-                "bbox_obj": detection["bbox_obj"],
-                "score": detection["score"],
-                "segmentation": detection["segmentation"],
-            }
-        )
+    for dets in best_detections_per_object.values():
+        for det in dets:
+            image_id = det.image_id
+            key = str(image_id)
+            detections[key].append(
+                {
+                    "category_id": det.category_id,
+                    "image_id": image_id,
+                    "index": det.index,
+                    "bbox_obj": det.bbox_obj,
+                    "score": det.score,
+                    "segmentation": det.segmentation,
+                }
+            )
 
     return detections
 
@@ -210,12 +226,13 @@ def save_cnos_as_bop(
     sorted_instances = defaultdict(list)
     masks_dir = Path(output_dir) / "mask_visib"
     masks_dir.mkdir(parents=True, exist_ok=True)
+    key_counter = defaultdict()
     for detection in detections.values():
-        # get_logger("convert_cnos_to_bop").info(f"detection = {detection}")
         for value in sorted(detection, key=lambda x: x["category_id"]):
             category_id = value["category_id"]
             image_id = value["image_id"]
             key = str(image_id)
+            index = value["index"]
             binary_mask = rle_to_binary_mask(value["segmentation"])
             bbox_visib = calc_bbox_from_mask(binary_mask)
             px_count_visib = np.sum(binary_mask)
@@ -226,6 +243,7 @@ def save_cnos_as_bop(
                     "cam_R_m2c": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
                     "cam_t_m2c": [0.0, 0.0, 0.0],
                     "obj_id": category_id,
+                    "index": index,
                 }
             )
             sorted_detections[key].append(
@@ -233,9 +251,10 @@ def save_cnos_as_bop(
                     "bbox_obj": value["bbox_obj"],
                     "bbox_visib": bbox_visib,
                     "visib_fract": visib_fract,
+                    "index": index,
                 }
             )
-            segmentation_filepath = masks_dir / f"{image_id:06d}_{category_id:06d}.png"
+            segmentation_filepath = masks_dir / f"{image_id:06d}_{category_id:06d}_{index:06d}.png"
             cv2.imwrite(str(segmentation_filepath), binary_mask * 255)
 
     instances_filepath = Path(output_dir) / "scene_gt.json"
@@ -249,10 +268,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, required=True)
     parser.add_argument("--output", type=str, required=True)
+    parser.add_argument("--threshold", type=float, default=0.0)
     args = parser.parse_args()
 
     pred_mask_list = load_json(args.input)
-    best_detections_per_object = get_best_detection_per_object(pred_mask_list)
+    best_detections_per_object = get_best_detection_per_object(pred_mask_list, args.threshold)
     detections_per_image = collect_detections_per_image(best_detections_per_object)
     save_cnos_as_bop(detections_per_image, args.output)
 

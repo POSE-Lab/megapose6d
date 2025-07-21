@@ -234,6 +234,7 @@ class BOPDataset(SceneDataset):
                 else:
                     obj_id = annotation[n]["obj_id"]
                     name = f"obj_{int(obj_id):06d}"
+                index = annotation[n]["index"]
 
                 bbox_visib = np.array(visib[n]["bbox_visib"]).tolist()
                 x, y, w, h = bbox_visib
@@ -268,7 +269,7 @@ class BOPDataset(SceneDataset):
             else:
                 for n in range(n_objects):
                     binary_mask_n = np.array(
-                        Image.open(scene_dir / "mask_visib" / f"{view_id_str}_{obj_id:06d}.png")
+                        Image.open(scene_dir / "mask_visib" / f"{view_id_str}_{obj_id:06d}_{index:06d}.png")
                     )
                     segmentation[binary_mask_n == 255] = n + 1
 
